@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shifumi - Solo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <button id="rules-btn" title="Règles du jeu" aria-label="Règles du jeu">❓</button>
+    <div class="container">
+        <h1>Shifumi</h1>
+        <a href="index.html" class="accueil-btn" style="position:absolute;left:18px;top:18px;font-size:1.2em;">← Accueil</a>
+        <button id="new-game">Nouvelle partie</button>
+        <div id="game-area" class="hidden">
+            <div id="scoreboard">
+                <div class="score-block">
+                    <span id="player-score">0</span>
+                    <div class="score-label">Joueur</div>
+                </div>
+                <div class="score-block">
+                    <span id="egalite-score">0</span>
+                    <div class="score-label">Égalités</div>
+                </div>
+                <div class="score-block">
+                    <span id="computer-score">0</span>
+                    <div class="score-label">Ordinateur</div>
+                </div>
+            </div>
+            <div id="choices">
+                <button class="choice" data-choice="pierre">
+                    <img src="images/pierre.png" alt="Pierre">
+                </button>
+                <button class="choice" data-choice="feuille">
+                    <img src="images/feuille.png" alt="Feuille">
+                </button>
+                <button class="choice" data-choice="ciseaux">
+                    <img src="images/ciseaux.png" alt="Ciseaux">
+                </button>
+            </div>
+            <div id="result"></div>
+            <div id="computer-choice-container">
+                <div id="computer-choice-label">Choix de l'ordinateur :</div>
+                <div id="computer-choice-square"></div>
+            </div>
+        </div>
+        <div id="final-result" class="hidden"></div>
+        <div id="confetti-container"></div>
+    </div>
+    <div id="rules-modal">
+        <div id="rules-content">
+            <button id="close-rules" aria-label="Fermer">✖</button>
+            <h2>Règles du Shifumi</h2>
+            <div style="display: flex; justify-content: center; gap: 18px; margin-bottom: 18px;">
+                <div style="text-align:center;">
+                    <img src="images/pierre.png" alt="Pierre" style="width:40px;"><br>Pierre
+                </div>
+                <div style="text-align:center;">
+                    <img src="images/feuille.png" alt="Feuille" style="width:40px;"><br>Feuille
+                </div>
+                <div style="text-align:center;">
+                    <img src="images/ciseaux.png" alt="Ciseaux" style="width:40px;"><br>Ciseaux
+                </div>
+            </div>
+            <div style="text-align:center; margin-bottom: 12px;">
+                <b>Le premier à 10 victoires remporte la partie</b>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <img src="images/pierre.png" alt="Pierre" style="width:32px;">
+                    <span style="font-size:1.2em;">bat</span>
+                    <img src="images/ciseaux.png" alt="Ciseaux" style="width:32px;">
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <img src="images/feuille.png" alt="Feuille" style="width:32px;">
+                    <span style="font-size:1.2em;">bat</span>
+                    <img src="images/pierre.png" alt="Pierre" style="width:32px;">
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <img src="images/ciseaux.png" alt="Ciseaux" style="width:32px;">
+                    <span style="font-size:1.2em;">bat</span>
+                    <img src="images/feuille.png" alt="Feuille" style="width:32px;">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 
