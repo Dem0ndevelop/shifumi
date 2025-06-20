@@ -204,29 +204,24 @@ if (document.getElementById('room-list')) {
             rooms.forEach(code => {
                 const li = document.createElement('li');
                 li.textContent = `Partie ${code}`;
-                if (currentRoom === code) {
-                    li.style.fontWeight = 'bold';
-                    li.style.background = '#dff9fb';
-                    li.appendChild(document.createTextNode(' (vous)'));
-                } else {
-                    const btn = document.createElement('button');
-                    btn.textContent = 'Rejoindre';
-                    btn.className = 'room-join-btn';
-                    btn.onclick = () => {
-                        socket.emit('joinRoom', code, (res) => {
-                            if (res.error) {
-                                onlineStatus.textContent = res.error;
-                            } else {
-                                currentRoom = res.code;
-                                myPlayerIndex = res.player;
-                                inGame = true;
-                                onlineRoomDiv.textContent = 'En jeu dans la partie : ' + currentRoom;
-                                onlineStatus.textContent = '';
-                            }
-                        });
-                    };
-                    li.appendChild(btn);
-                }
+                const btn = document.createElement('button');
+                btn.textContent = 'Rejoindre';
+                btn.className = 'room-join-btn';
+                btn.onclick = () => {
+                    socket.emit('joinRoom', code, (res) => {
+                        if (res.error) {
+                            onlineStatus.textContent = res.error;
+                        } else {
+                            currentRoom = res.code;
+                            myPlayerIndex = res.player;
+                            inGame = true;
+                            onlineRoomDiv.textContent = 'En jeu dans la partie : ' + currentRoom;
+                            onlineStatus.textContent = '';
+                            document.getElementById('game-area').classList.remove('hidden');
+                        }
+                    });
+                };
+                li.appendChild(btn);
                 roomList.appendChild(li);
             });
         }
@@ -242,7 +237,6 @@ if (document.getElementById('room-list')) {
             onlineRoomDiv.textContent = 'En attente dans la partie : ' + currentRoom;
             onlineStatus.textContent = 'En attente d\'un adversaire…';
             document.getElementById('game-area').classList.add('hidden');
-            socket.emit('getRoomList');
         });
     };
 
