@@ -86,57 +86,60 @@ function endGame() {
     }
 }
 
-choicesBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        if (!canPlay) return;
-        canPlay = false;
-        choicesBtns.forEach(b => b.classList.remove('selected', 'gagnant', 'perdant', 'gris'));
-        btn.classList.add('selected');
-        resultDiv.textContent = '';
-        computerChoiceSquare.innerHTML = '';
-        setTimeout(() => {
-            const playerChoice = btn.getAttribute('data-choice');
-            const computerChoice = getComputerChoice();
-            computerChoiceSquare.innerHTML = `<img src="${coupToImg[computerChoice]}" alt="${coupToText[computerChoice]}"><div class="coup-label">${coupToText[computerChoice]}</div>`;
-            choicesBtns.forEach(b => {
-                if (b !== btn) b.classList.add('gris');
-            });
+if (!document.getElementById('room-list')) {
+    // === Mode solo/local uniquement ===
+    choicesBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (!canPlay) return;
+            canPlay = false;
+            choicesBtns.forEach(b => b.classList.remove('selected', 'gagnant', 'perdant', 'gris'));
             btn.classList.add('selected');
-            const res = getResult(playerChoice, computerChoice);
-            resultDiv.classList.remove('gagne', 'perdu', 'egalite');
-            if (res === 'Gagné') {
-                playerScore++;
-                resultDiv.textContent = 'Vous remportez la manche !';
-                resultDiv.classList.add('gagne');
-                btn.classList.add('gagnant');
-                updateScores(true, 'player');
-                launchConfetti();
-            } else if (res === 'Perdu') {
-                computerScore++;
-                resultDiv.textContent = "L'ordinateur remporte la manche.";
-                resultDiv.classList.add('perdu');
-                btn.classList.add('perdant');
-                updateScores(true, 'computer');
-            } else {
-                egaliteScore++;
-                resultDiv.textContent = 'Égalité.';
-                resultDiv.classList.add('egalite');
-                btn.classList.add('gris');
-                updateScores(true, 'egalite');
-            }
-            if (playerScore >= maxScore || computerScore >= maxScore) {
-                setTimeout(endGame, 1200);
-            } else {
-                setTimeout(() => {
-                    canPlay = true;
-                    choicesBtns.forEach(b => b.classList.remove('selected', 'gagnant', 'perdant', 'gris'));
-                    computerChoiceSquare.innerHTML = '';
-                    clearConfetti();
-                }, 1000);
-            }
-        }, 1200);
+            resultDiv.textContent = '';
+            computerChoiceSquare.innerHTML = '';
+            setTimeout(() => {
+                const playerChoice = btn.getAttribute('data-choice');
+                const computerChoice = getComputerChoice();
+                computerChoiceSquare.innerHTML = `<img src="${coupToImg[computerChoice]}" alt="${coupToText[computerChoice]}"><div class="coup-label">${coupToText[computerChoice]}</div>`;
+                choicesBtns.forEach(b => {
+                    if (b !== btn) b.classList.add('gris');
+                });
+                btn.classList.add('selected');
+                const res = getResult(playerChoice, computerChoice);
+                resultDiv.classList.remove('gagne', 'perdu', 'egalite');
+                if (res === 'Gagné') {
+                    playerScore++;
+                    resultDiv.textContent = 'Vous remportez la manche !';
+                    resultDiv.classList.add('gagne');
+                    btn.classList.add('gagnant');
+                    updateScores(true, 'player');
+                    launchConfetti();
+                } else if (res === 'Perdu') {
+                    computerScore++;
+                    resultDiv.textContent = "L'ordinateur remporte la manche.";
+                    resultDiv.classList.add('perdu');
+                    btn.classList.add('perdant');
+                    updateScores(true, 'computer');
+                } else {
+                    egaliteScore++;
+                    resultDiv.textContent = 'Égalité.';
+                    resultDiv.classList.add('egalite');
+                    btn.classList.add('gris');
+                    updateScores(true, 'egalite');
+                }
+                if (playerScore >= maxScore || computerScore >= maxScore) {
+                    setTimeout(endGame, 1200);
+                } else {
+                    setTimeout(() => {
+                        canPlay = true;
+                        choicesBtns.forEach(b => b.classList.remove('selected', 'gagnant', 'perdant', 'gris'));
+                        computerChoiceSquare.innerHTML = '';
+                        clearConfetti();
+                    }, 1000);
+                }
+            }, 1200);
+        });
     });
-});
+}
 
 function launchConfetti() {
     clearConfetti();
