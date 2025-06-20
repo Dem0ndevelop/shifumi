@@ -12,6 +12,10 @@ const ROOM_CODE_LENGTH = 6;
 const PSEUDO_REGEX = /^[\w\sÀ-ÿ-]{2,16}$/;
 const PLAYER_RECONNECT_TIMEOUT = 2 * 60 * 1000; // 2 minutes
 
+// Elo params
+const ELO_DEFAULT = 1200;
+const ELO_K = 32;
+
 const io = new Server(server, { cors: { origin: ALLOWED_ORIGIN } });
 const PORT = process.env.PORT || 3000;
 
@@ -21,7 +25,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Structure améliorée avec pseudos
 // { roomCode: { players: [{id, pseudo}, ...], scores: {p1, p2, egalite}, coups: {p1, p2}, ready: 0/1/2 } }
 const rooms = {};
-const leaderboard = new Map(); // pseudo -> {wins, losses}
+const leaderboard = new Map(); // pseudo -> {wins, losses, elo}
 
 function getOpponent(room, socketId) {
     return rooms[room]?.players.find(player => player.id !== socketId);
@@ -40,21 +44,29 @@ function broadcastRoomList() {
 
 function broadcastLeaderboard() {
     const leaderboardArray = Array.from(leaderboard.entries())
-        .map(([pseudo, stats]) => ({ pseudo, wins: stats.wins, losses: stats.losses }))
-        .sort((a, b) => b.wins - a.wins);
+        .map(([pseudo, stats]) => ({ pseudo, wins: stats.wins, losses: stats.losses, elo: stats.elo || ELO_DEFAULT }))
+        .sort((a, b) => b.elo - a.elo);
     io.emit('leaderboard', leaderboardArray);
 }
 
 function updateLeaderboard(winnerPseudo, loserPseudo) {
     if (!leaderboard.has(winnerPseudo)) {
-        leaderboard.set(winnerPseudo, { wins: 0, losses: 0 });
+        leaderboard.set(winnerPseudo, { wins: 0, losses: 0, elo: ELO_DEFAULT });
     }
     if (!leaderboard.has(loserPseudo)) {
-        leaderboard.set(loserPseudo, { wins: 0, losses: 0 });
+        leaderboard.set(loserPseudo, { wins: 0, losses: 0, elo: ELO_DEFAULT });
     }
-    
     leaderboard.get(winnerPseudo).wins++;
     leaderboard.get(loserPseudo).losses++;
+    // Elo update
+    const winner = leaderboard.get(winnerPseudo);
+    const loser = leaderboard.get(loserPseudo);
+    const Ra = winner.elo;
+    const Rb = loser.elo;
+    const Ea = 1 / (1 + Math.pow(10, (Rb - Ra) / 400));
+    const Eb = 1 / (1 + Math.pow(10, (Ra - Rb) / 400));
+    winner.elo = Math.round(Ra + ELO_K * (1 - Ea));
+    loser.elo = Math.round(Rb + ELO_K * (0 - Eb));
     broadcastLeaderboard();
 }
 

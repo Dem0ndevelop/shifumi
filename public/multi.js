@@ -99,7 +99,7 @@ if (document.getElementById('room-list')) {
         table.style.borderCollapse = 'collapse';
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
-        ['Pseudo', 'Victoires', 'Défaites'].forEach(text => {
+        ['Pseudo', 'Victoires', 'Défaites', 'Elo'].forEach(text => {
             const th = document.createElement('th');
             th.textContent = text;
             th.style.textAlign = 'left';
@@ -110,9 +110,9 @@ if (document.getElementById('room-list')) {
         thead.appendChild(headerRow);
         table.appendChild(thead);
         const tbody = document.createElement('tbody');
-        leaderboard.forEach(({ pseudo, wins, losses }) => {
+        leaderboard.forEach(({ pseudo, wins, losses, elo }) => {
             const tr = document.createElement('tr');
-            [pseudo, wins, losses].forEach(val => {
+            [pseudo, wins, losses, elo].forEach(val => {
                 const td = document.createElement('td');
                 td.textContent = val;
                 td.style.padding = '4px 8px';
@@ -217,13 +217,15 @@ if (document.getElementById('room-list')) {
     // Gestion du coup multijoueur
     choicesBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            if (!inGame || hasPlayed) return;
+            if (!inGame || hasPlayed || btn.disabled) return;
             choicesBtns.forEach(b => b.classList.remove('selected', 'gagnant', 'perdant', 'gris'));
             btn.classList.add('selected');
             waitingCoup = btn.getAttribute('data-choice');
             socket.emit('play', waitingCoup);
             hasPlayed = true;
             resultDiv.textContent = 'En attente de l\'adversaire...';
+            // Désactiver tous les choix jusqu'à la fin du tour
+            choicesBtns.forEach(b => b.disabled = true);
         });
     });
 
@@ -233,6 +235,8 @@ if (document.getElementById('room-list')) {
         onlineChoices.style.display = '';
         onlineJ1.innerHTML = `<img src="${coupToImg[coups.p1]}" alt="${coupToText[coups.p1]}"><div class="coup-label">${coupToText[coups.p1]}</div>`;
         onlineJ2.innerHTML = `<img src="${coupToImg[coups.p2]}" alt="${coupToText[coups.p2]}"><div class="coup-label">${coupToText[coups.p2]}</div>`;
+        // Désactiver les choix pendant l'affichage du résultat
+        choicesBtns.forEach(btn => btn.disabled = true);
         if (myPlayerIndex === 1) {
             playerScore = scores.p1;
             computerScore = scores.p2;
@@ -261,6 +265,8 @@ if (document.getElementById('room-list')) {
                 resultDiv.textContent = '';
                 choicesBtns.forEach(b => b.classList.remove('selected', 'gagnant', 'perdant', 'gris'));
                 clearConfetti();
+                // Réactiver les choix pour le tour suivant
+                choicesBtns.forEach(btn => btn.disabled = false);
             }, 1200);
         }
     });
