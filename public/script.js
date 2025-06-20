@@ -198,12 +198,9 @@ if (document.getElementById('room-list')) {
 
     function renderRoomList(rooms) {
         roomList.innerHTML = '';
-        if (rooms.length === 0 && !currentRoom) {
+        if (rooms.length === 0) {
             roomList.innerHTML = '<li>Aucune partie en attente</li>';
         } else {
-            if (currentRoom && !rooms.includes(currentRoom)) {
-                rooms = [currentRoom, ...rooms];
-            }
             rooms.forEach(code => {
                 const li = document.createElement('li');
                 li.textContent = `Partie ${code}`;
