@@ -9,7 +9,16 @@ const finalResultDiv = document.getElementById('final-result');
 const computerChoiceSquare = document.getElementById('computer-choice-square');
 const confettiContainer = document.getElementById('confetti-container');
 
-const maxScore = 10;
+// Ajout d'une fonction utilitaire pour localStorage sécurisé
+function safeLocalStorage() {
+    try {
+        if (typeof localStorage !== 'undefined') return localStorage;
+    } catch (e) {}
+    return null;
+}
+const LS = safeLocalStorage();
+const MAX_SCORE = 10;
+
 let playerScore = 0;
 let computerScore = 0;
 let egaliteScore = 0;
@@ -126,7 +135,7 @@ if (!document.getElementById('room-list')) {
                     btn.classList.add('gris');
                     updateScores(true, 'egalite');
                 }
-                if (playerScore >= maxScore || computerScore >= maxScore) {
+                if (playerScore >= MAX_SCORE || computerScore >= MAX_SCORE) {
                     setTimeout(endGame, 1200);
                 } else {
                     setTimeout(() => {
@@ -157,14 +166,28 @@ if (!document.getElementById('room-list')) {
     });
 
     // Pseudo solo (localStorage)
-    let soloPseudo = localStorage.getItem('pseudo') || 'Joueur';
+    let soloPseudo = (LS && LS.getItem('pseudo')) || window._soloPseudo || 'Joueur';
 
     // Classement solo : structure [{pseudo, wins, losses}]
     function getSoloLeaderboard() {
-        return JSON.parse(localStorage.getItem('soloLeaderboard') || '[]');
+        if (!LS) return window._soloLeaderboard || [];
+        try {
+            return JSON.parse(LS.getItem('soloLeaderboard') || '[]');
+        } catch (e) {
+            console.error('Erreur parsing leaderboard:', e);
+            return [];
+        }
     }
     function saveSoloLeaderboard(leaderboard) {
-        localStorage.setItem('soloLeaderboard', JSON.stringify(leaderboard));
+        if (!LS) {
+            window._soloLeaderboard = leaderboard;
+            return;
+        }
+        try {
+            LS.setItem('soloLeaderboard', JSON.stringify(leaderboard));
+        } catch (e) {
+            console.error('Erreur sauvegarde leaderboard:', e);
+        }
     }
     function updateSoloLeaderboard(isWin) {
         let leaderboard = getSoloLeaderboard();
@@ -216,12 +239,15 @@ if (!document.getElementById('room-list')) {
     }
 
     // Ajout mise à jour classement à la fin de partie solo
-    const oldEndGame = endGame;
-    endGame = function() {
-        if (playerScore > computerScore) updateSoloLeaderboard(true);
-        else if (playerScore < computerScore) updateSoloLeaderboard(false);
-        oldEndGame();
-    };
+    let isSoloMode = !document.getElementById('room-list');
+    let endGameSolo = endGame;
+    if (isSoloMode) {
+        endGame = function() {
+            if (playerScore > computerScore) updateSoloLeaderboard(true);
+            else if (playerScore < computerScore) updateSoloLeaderboard(false);
+            endGameSolo();
+        };
+    }
 }
 
 function launchConfetti() {
@@ -425,7 +451,7 @@ if (document.getElementById('room-list')) {
             resultDiv.textContent = 'Égalité.';
             resultDiv.classList.add('egalite');
         }
-        if (playerScore >= maxScore || computerScore >= maxScore) {
+        if (playerScore >= MAX_SCORE || computerScore >= MAX_SCORE) {
             setTimeout(endGame, 1200);
         } else {
             setTimeout(() => {
@@ -457,5 +483,10 @@ if (document.getElementById('room-list')) {
     }
     pseudoInput.addEventListener('input', () => {
         localStorage.setItem('pseudo', pseudoInput.value.trim());
+    });
+
+    // Ajouter des logs d'erreur pour les accès réseau (socket.io)
+    socket.on('connect_error', (err) => {
+        console.error('Erreur de connexion Socket.IO:', err);
     });
 } 
