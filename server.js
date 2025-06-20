@@ -18,9 +18,20 @@ function getOpponent(room, socketId) {
     return rooms[room]?.players.find(id => id !== socketId);
 }
 
+// Envoie la liste des rooms en attente à tous les clients
+function broadcastRoomList() {
+    const waitingRooms = Object.entries(rooms)
+        .filter(([code, room]) => room.players.length === 1)
+        .map(([code]) => code);
+    io.emit('roomList', waitingRooms);
+}
+
 io.on('connection', (socket) => {
     let currentRoom = null;
     let playerIndex = null;
+
+    // Envoie la liste des rooms à la connexion
+    broadcastRoomList();
 
     socket.on('createRoom', (cb) => {
         let code;
@@ -37,6 +48,7 @@ io.on('connection', (socket) => {
         playerIndex = 1;
         socket.join(code);
         cb({ code, player: 1 });
+        broadcastRoomList();
     });
 
     socket.on('joinRoom', (code, cb) => {
@@ -47,8 +59,8 @@ io.on('connection', (socket) => {
         playerIndex = 2;
         socket.join(code);
         cb({ code, player: 2 });
-        // Notifier les deux joueurs que la partie commence
         io.to(code).emit('startGame');
+        broadcastRoomList();
     });
 
     socket.on('play', (coup) => {
@@ -94,6 +106,7 @@ io.on('connection', (socket) => {
             } else {
                 io.to(currentRoom).emit('opponentLeft');
             }
+            broadcastRoomList();
         }
     });
 });

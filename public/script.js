@@ -175,4 +175,69 @@ window.onload = () => {
     finalResultDiv.classList.add('hidden');
 };
 
-newGameBtn.addEventListener('click', resetGame); 
+newGameBtn.addEventListener('click', resetGame);
+
+// === Mode multijoueur avec liste de parties ===
+if (document.getElementById('room-list')) {
+    const socket = io();
+    const roomList = document.getElementById('room-list');
+    const onlineCreate = document.getElementById('online-create');
+    const onlineStatus = document.getElementById('online-status');
+    const onlineRoomDiv = document.getElementById('online-room');
+    let currentRoom = null;
+    let inGame = false;
+
+    function renderRoomList(rooms) {
+        roomList.innerHTML = '';
+        if (rooms.length === 0) {
+            roomList.innerHTML = '<li>Aucune partie en attente</li>';
+        } else {
+            rooms.forEach(code => {
+                const li = document.createElement('li');
+                li.textContent = `Partie ${code}`;
+                const btn = document.createElement('button');
+                btn.textContent = 'Rejoindre';
+                btn.className = 'room-join-btn';
+                btn.onclick = () => {
+                    socket.emit('joinRoom', code, (res) => {
+                        if (res.error) {
+                            onlineStatus.textContent = res.error;
+                        } else {
+                            currentRoom = res.code;
+                            inGame = true;
+                            onlineRoomDiv.textContent = 'En jeu dans la partie : ' + currentRoom;
+                            onlineStatus.textContent = '';
+                            document.getElementById('game-area').classList.remove('hidden');
+                        }
+                    });
+                };
+                li.appendChild(btn);
+                roomList.appendChild(li);
+            });
+        }
+    }
+
+    socket.on('roomList', renderRoomList);
+
+    onlineCreate.onclick = () => {
+        socket.emit('createRoom', ({ code, player }) => {
+            currentRoom = code;
+            inGame = true;
+            onlineRoomDiv.textContent = 'En attente dans la partie : ' + currentRoom;
+            onlineStatus.textContent = 'En attente d\'un adversaire…';
+            document.getElementById('game-area').classList.add('hidden');
+        });
+    };
+
+    socket.on('startGame', () => {
+        onlineStatus.textContent = 'Adversaire connecté !';
+        document.getElementById('game-area').classList.remove('hidden');
+    });
+
+    socket.on('opponentLeft', () => {
+        onlineStatus.textContent = "L'adversaire a quitté la partie.";
+        setTimeout(() => window.location.reload(), 2000);
+    });
+
+    // ... (le reste de la logique multijoueur, roundResult, etc. à conserver)
+} 

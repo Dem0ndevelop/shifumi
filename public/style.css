@@ -373,7 +373,30 @@ h1 {
     color: #fff;
     transform: scale(1.04);
     text-decoration: none;
-} 
+}
+#room-list li {
+    background: #f5f6fa;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.room-join-btn {
+    background: #44bd32;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 16px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.room-join-btn:hover {
+    background: #0097e6;
+}
 
 .accueil-btn{
     display: block;
