@@ -60,21 +60,27 @@ if (document.getElementById('room-list')) {
                 const btn = document.createElement('button');
                 btn.textContent = 'Rejoindre';
                 btn.className = 'room-join-btn';
-                btn.onclick = () => {
-                    myPseudo = pseudoInput.value.trim() || 'Invité';
-                    socket.emit('joinRoom', { code, pseudo: myPseudo }, (res) => {
-                        if (res.error) {
-                            onlineStatus.textContent = res.error;
-                        } else {
-                            currentRoom = res.code;
-                            myPlayerIndex = res.player;
-                            inGame = true;
-                            onlineRoomDiv.textContent = 'En jeu dans la partie : ' + currentRoom;
-                            onlineStatus.textContent = '';
-                            document.getElementById('game-area').classList.remove('hidden');
-                        }
-                    });
-                };
+                if ((pseudoInput.value.trim() || 'Invité') === pseudo) {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    btn.title = 'Vous ne pouvez pas rejoindre votre propre partie';
+                } else {
+                    btn.onclick = () => {
+                        myPseudo = pseudoInput.value.trim() || 'Invité';
+                        socket.emit('joinRoom', { code, pseudo: myPseudo }, (res) => {
+                            if (res.error) {
+                                onlineStatus.textContent = res.error;
+                            } else {
+                                currentRoom = res.code;
+                                myPlayerIndex = res.player;
+                                inGame = true;
+                                onlineRoomDiv.textContent = 'En jeu dans la partie : ' + currentRoom;
+                                onlineStatus.textContent = '';
+                                document.getElementById('game-area').classList.remove('hidden');
+                            }
+                        });
+                    };
+                }
                 li.appendChild(btn);
                 roomList.appendChild(li);
             });
@@ -227,13 +233,18 @@ if (document.getElementById('room-list')) {
         onlineChoices.style.display = '';
         onlineJ1.innerHTML = `<img src="${coupToImg[coups.p1]}" alt="${coupToText[coups.p1]}"><div class="coup-label">${coupToText[coups.p1]}</div>`;
         onlineJ2.innerHTML = `<img src="${coupToImg[coups.p2]}" alt="${coupToText[coups.p2]}"><div class="coup-label">${coupToText[coups.p2]}</div>`;
-        playerScore = scores.p1;
-        computerScore = scores.p2;
+        if (myPlayerIndex === 1) {
+            playerScore = scores.p1;
+            computerScore = scores.p2;
+        } else {
+            playerScore = scores.p2;
+            computerScore = scores.p1;
+        }
         egaliteScore = scores.egalite;
-        updateScores(true, gagnant === 'p1' ? 'player' : gagnant === 'p2' ? 'computer' : 'egalite');
-        resultDiv.classList.remove('gagne', 'perdu', 'egalite');
         let isMeWinner = (gagnant === 'p1' && myPlayerIndex === 1) || (gagnant === 'p2' && myPlayerIndex === 2);
         let isMeLoser = (gagnant === 'p1' && myPlayerIndex === 2) || (gagnant === 'p2' && myPlayerIndex === 1);
+        updateScores(true, isMeWinner ? 'player' : isMeLoser ? 'computer' : 'egalite');
+        resultDiv.classList.remove('gagne', 'perdu', 'egalite');
         if (gagnant === 'p1' || gagnant === 'p2') {
             resultDiv.textContent = isMeWinner ? 'Vous remportez la manche !' : (adversairePseudo ? adversairePseudo + ' remporte la manche !' : 'Adversaire remporte la manche !');
             resultDiv.classList.add(isMeWinner ? 'gagne' : 'perdu');
@@ -301,8 +312,10 @@ function endGame() {
     finalResultDiv.classList.remove('hidden');
     if (playerScore > computerScore) {
         finalResultDiv.textContent = `Bravo ! Vous avez gagné la partie ${playerScore} à ${computerScore} !`;
+    } else if (playerScore < computerScore) {
+        finalResultDiv.textContent = `Dommage... L'adversaire a gagné ${computerScore} à ${playerScore}.`;
     } else {
-        finalResultDiv.textContent = `Dommage... L'ordinateur a gagné ${computerScore} à ${playerScore}.`;
+        finalResultDiv.textContent = `Égalité parfaite ! (${playerScore} partout)`;
     }
 }
 
