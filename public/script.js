@@ -139,6 +139,89 @@ if (!document.getElementById('room-list')) {
             }, 1200);
         });
     });
+
+    // Gestion modale classement
+    const leaderboardBtn = document.getElementById('leaderboard-btn');
+    const leaderboardModal = document.getElementById('leaderboard-modal');
+    const closeLeaderboard = document.getElementById('close-leaderboard');
+    const leaderboardDiv = document.getElementById('leaderboard');
+    leaderboardBtn.addEventListener('click', () => {
+        renderSoloLeaderboard();
+        leaderboardModal.classList.add('open');
+    });
+    closeLeaderboard.addEventListener('click', () => {
+        leaderboardModal.classList.remove('open');
+    });
+    leaderboardModal.addEventListener('click', (e) => {
+        if (e.target === leaderboardModal) leaderboardModal.classList.remove('open');
+    });
+
+    // Pseudo solo (localStorage)
+    let soloPseudo = localStorage.getItem('pseudo') || 'Joueur';
+
+    // Classement solo : structure [{pseudo, wins, losses}]
+    function getSoloLeaderboard() {
+        return JSON.parse(localStorage.getItem('soloLeaderboard') || '[]');
+    }
+    function saveSoloLeaderboard(leaderboard) {
+        localStorage.setItem('soloLeaderboard', JSON.stringify(leaderboard));
+    }
+    function updateSoloLeaderboard(isWin) {
+        let leaderboard = getSoloLeaderboard();
+        let entry = leaderboard.find(e => e.pseudo === soloPseudo);
+        if (!entry) {
+            entry = { pseudo: soloPseudo, wins: 0, losses: 0 };
+            leaderboard.push(entry);
+        }
+        if (isWin === true) entry.wins++;
+        if (isWin === false) entry.losses++;
+        saveSoloLeaderboard(leaderboard);
+    }
+    function renderSoloLeaderboard() {
+        leaderboardDiv.innerHTML = '';
+        const leaderboard = getSoloLeaderboard();
+        if (!leaderboard.length) {
+            leaderboardDiv.textContent = 'Aucun score pour le moment.';
+            return;
+        }
+        // Tableau
+        const table = document.createElement('table');
+        table.style.width = '100%';
+        table.style.borderCollapse = 'collapse';
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        ['Pseudo', 'Victoires', 'Défaites'].forEach(text => {
+            const th = document.createElement('th');
+            th.textContent = text;
+            th.style.textAlign = 'left';
+            th.style.padding = '4px 8px';
+            th.style.borderBottom = '2px solid #e1b12c';
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+        const tbody = document.createElement('tbody');
+        leaderboard.forEach(({ pseudo, wins, losses }) => {
+            const tr = document.createElement('tr');
+            [pseudo, wins, losses].forEach(val => {
+                const td = document.createElement('td');
+                td.textContent = val;
+                td.style.padding = '4px 8px';
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        leaderboardDiv.appendChild(table);
+    }
+
+    // Ajout mise à jour classement à la fin de partie solo
+    const oldEndGame = endGame;
+    endGame = function() {
+        if (playerScore > computerScore) updateSoloLeaderboard(true);
+        else if (playerScore < computerScore) updateSoloLeaderboard(false);
+        oldEndGame();
+    };
 }
 
 function launchConfetti() {
@@ -151,7 +234,9 @@ function launchConfetti() {
         conf.style.animationDuration = (1.5 + Math.random()) + 's';
         confettiContainer.appendChild(conf);
     }
+    setTimeout(clearConfetti, 5000); // cooldown 5s max
 }
+
 function clearConfetti() {
     confettiContainer.innerHTML = '';
 }
@@ -240,11 +325,35 @@ if (document.getElementById('room-list')) {
             leaderboardDiv.textContent = 'Aucun score pour le moment.';
             return;
         }
-        leaderboard.forEach(({ pseudo, wins, losses }) => {
-            const div = document.createElement('div');
-            div.textContent = `${pseudo} : ${wins} victoires, ${losses} défaites`;
-            leaderboardDiv.appendChild(div);
+        // Création du tableau
+        const table = document.createElement('table');
+        table.style.width = '100%';
+        table.style.borderCollapse = 'collapse';
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        ['Pseudo', 'Victoires', 'Défaites'].forEach(text => {
+            const th = document.createElement('th');
+            th.textContent = text;
+            th.style.textAlign = 'left';
+            th.style.padding = '4px 8px';
+            th.style.borderBottom = '2px solid #e1b12c';
+            headerRow.appendChild(th);
         });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+        const tbody = document.createElement('tbody');
+        leaderboard.forEach(({ pseudo, wins, losses }) => {
+            const tr = document.createElement('tr');
+            [pseudo, wins, losses].forEach(val => {
+                const td = document.createElement('td');
+                td.textContent = val;
+                td.style.padding = '4px 8px';
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        leaderboardDiv.appendChild(table);
     }
 
     socket.on('roomList', renderRoomList);
@@ -326,5 +435,27 @@ if (document.getElementById('room-list')) {
                 clearConfetti();
             }, 1200);
         }
+    });
+
+    // Gestion modale classement
+    const leaderboardBtn = document.getElementById('leaderboard-btn');
+    const leaderboardModal = document.getElementById('leaderboard-modal');
+    const closeLeaderboard = document.getElementById('close-leaderboard');
+    leaderboardBtn.addEventListener('click', () => {
+        leaderboardModal.classList.add('open');
+    });
+    closeLeaderboard.addEventListener('click', () => {
+        leaderboardModal.classList.remove('open');
+    });
+    leaderboardModal.addEventListener('click', (e) => {
+        if (e.target === leaderboardModal) leaderboardModal.classList.remove('open');
+    });
+
+    // Pseudo localStorage
+    if (localStorage.getItem('pseudo')) {
+        pseudoInput.value = localStorage.getItem('pseudo');
+    }
+    pseudoInput.addEventListener('input', () => {
+        localStorage.setItem('pseudo', pseudoInput.value.trim());
     });
 } 

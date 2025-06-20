@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <button id="leaderboard-btn" title="Classement" aria-label="Classement">🏆</button>
     <button id="rules-btn" title="Règles du jeu" aria-label="Règles du jeu">❓</button>
     <div class="container">
         <h1>Shifumi</h1>
@@ -82,6 +83,13 @@
                     <img src="images/feuille.png" alt="Feuille" style="width:32px;">
                 </div>
             </div>
+        </div>
+    </div>
+    <div id="leaderboard-modal">
+        <div id="leaderboard-content">
+            <button id="close-leaderboard" aria-label="Fermer">✖</button>
+            <h2>Classement</h2>
+            <div id="leaderboard" style="background:#f5f6fa; border-radius:8px; padding:10px 16px; min-height:40px;"></div>
         </div>
     </div>
     <script src="script.js"></script>

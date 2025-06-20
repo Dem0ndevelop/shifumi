@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <button id="leaderboard-btn" title="Classement" aria-label="Classement">🏆</button>
     <button id="rules-btn" title="Règles du jeu" aria-label="Règles du jeu">❓</button>
     <div class="container">
         <h1>Shifumi</h1>
@@ -18,10 +19,7 @@
             <div id="online-room" style="margin-top:8px; font-size:1.1em; color:#273c75;"></div>
             <h3 style="margin-top:24px;">Parties en attente :</h3>
             <ul id="room-list" style="list-style:none; padding:0; margin:0 0 18px 0;"></ul>
-            <h3 style="margin-top:32px;">Classement :</h3>
-            <div id="leaderboard" style="background:#f5f6fa; border-radius:8px; padding:10px 16px; min-height:40px;"></div>
         </div>
-        <button id="new-game">Nouvelle partie</button>
         <div id="game-area" class="hidden">
             <div id="scoreboard">
                 <div class="score-block">
@@ -94,6 +92,13 @@
                     <img src="images/feuille.png" alt="Feuille" style="width:32px;">
                 </div>
             </div>
+        </div>
+    </div>
+    <div id="leaderboard-modal">
+        <div id="leaderboard-content">
+            <button id="close-leaderboard" aria-label="Fermer">✖</button>
+            <h2>Classement</h2>
+            <div id="leaderboard" style="background:#f5f6fa; border-radius:8px; padding:10px 16px; min-height:40px;"></div>
         </div>
     </div>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
