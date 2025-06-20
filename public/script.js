@@ -245,6 +245,7 @@ if (document.getElementById('room-list')) {
             onlineRoomDiv.textContent = 'En attente dans la partie : ' + currentRoom;
             onlineStatus.textContent = 'En attente d\'un adversaire…';
             document.getElementById('game-area').classList.add('hidden');
+            socket.emit('getRoomList');
         });
     };
 

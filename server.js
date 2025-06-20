@@ -33,6 +33,10 @@ io.on('connection', (socket) => {
     // Envoie la liste des rooms à la connexion
     broadcastRoomList();
 
+    socket.on('getRoomList', () => {
+        broadcastRoomList();
+    });
+
     socket.on('createRoom', (cb) => {
         let code;
         do {
