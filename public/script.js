@@ -184,8 +184,14 @@ if (document.getElementById('room-list')) {
     const onlineCreate = document.getElementById('online-create');
     const onlineStatus = document.getElementById('online-status');
     const onlineRoomDiv = document.getElementById('online-room');
+    const onlineChoices = document.getElementById('online-choices');
+    const onlineJ1 = document.getElementById('online-j1');
+    const onlineJ2 = document.getElementById('online-j2');
     let currentRoom = null;
     let inGame = false;
+    let myPlayerIndex = null;
+    let hasPlayed = false;
+    let waitingCoup = null;
 
     function renderRoomList(rooms) {
         roomList.innerHTML = '';
@@ -204,6 +210,7 @@ if (document.getElementById('room-list')) {
                             onlineStatus.textContent = res.error;
                         } else {
                             currentRoom = res.code;
+                            myPlayerIndex = res.player;
                             inGame = true;
                             onlineRoomDiv.textContent = 'En jeu dans la partie : ' + currentRoom;
                             onlineStatus.textContent = '';
@@ -222,6 +229,7 @@ if (document.getElementById('room-list')) {
     onlineCreate.onclick = () => {
         socket.emit('createRoom', ({ code, player }) => {
             currentRoom = code;
+            myPlayerIndex = player;
             inGame = true;
             onlineRoomDiv.textContent = 'En attente dans la partie : ' + currentRoom;
             onlineStatus.textContent = 'En attente d\'un adversaire…';
@@ -232,6 +240,11 @@ if (document.getElementById('room-list')) {
     socket.on('startGame', () => {
         onlineStatus.textContent = 'Adversaire connecté !';
         document.getElementById('game-area').classList.remove('hidden');
+        hasPlayed = false;
+        waitingCoup = null;
+        onlineChoices.style.display = 'none';
+        resultDiv.textContent = '';
+        choicesBtns.forEach(b => b.classList.remove('selected', 'gagnant', 'perdant', 'gris'));
     });
 
     socket.on('opponentLeft', () => {
@@ -239,5 +252,49 @@ if (document.getElementById('room-list')) {
         setTimeout(() => window.location.reload(), 2000);
     });
 
-    // ... (le reste de la logique multijoueur, roundResult, etc. à conserver)
+    // Gestion du coup multijoueur
+    choicesBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (!inGame || hasPlayed) return;
+            choicesBtns.forEach(b => b.classList.remove('selected', 'gagnant', 'perdant', 'gris'));
+            btn.classList.add('selected');
+            waitingCoup = btn.getAttribute('data-choice');
+            socket.emit('play', waitingCoup);
+            hasPlayed = true;
+            resultDiv.textContent = 'En attente de l\'adversaire...';
+        });
+    });
+
+    socket.on('roundResult', ({ coups, scores, gagnant }) => {
+        hasPlayed = false;
+        waitingCoup = null;
+        onlineChoices.style.display = '';
+        onlineJ1.innerHTML = `<img src="${coupToImg[coups.p1]}" alt="${coupToText[coups.p1]}"><div class="coup-label">${coupToText[coups.p1]}</div>`;
+        onlineJ2.innerHTML = `<img src="${coupToImg[coups.p2]}" alt="${coupToText[coups.p2]}"><div class="coup-label">${coupToText[coups.p2]}</div>`;
+        playerScore = scores.p1;
+        computerScore = scores.p2;
+        egaliteScore = scores.egalite;
+        updateScores(true, gagnant === 'p1' ? 'player' : gagnant === 'p2' ? 'computer' : 'egalite');
+        resultDiv.classList.remove('gagne', 'perdu', 'egalite');
+        let isMeWinner = (gagnant === 'p1' && myPlayerIndex === 1) || (gagnant === 'p2' && myPlayerIndex === 2);
+        let isMeLoser = (gagnant === 'p1' && myPlayerIndex === 2) || (gagnant === 'p2' && myPlayerIndex === 1);
+        if (gagnant === 'p1' || gagnant === 'p2') {
+            resultDiv.textContent = isMeWinner ? 'Vous remportez la manche !' : 'Adversaire remporte la manche !';
+            resultDiv.classList.add(isMeWinner ? 'gagne' : 'perdu');
+            if (isMeWinner) launchConfetti();
+        } else {
+            resultDiv.textContent = 'Égalité.';
+            resultDiv.classList.add('egalite');
+        }
+        if (playerScore >= maxScore || computerScore >= maxScore) {
+            setTimeout(endGame, 1200);
+        } else {
+            setTimeout(() => {
+                onlineChoices.style.display = 'none';
+                resultDiv.textContent = '';
+                choicesBtns.forEach(b => b.classList.remove('selected', 'gagnant', 'perdant', 'gris'));
+                clearConfetti();
+            }, 1200);
+        }
+    });
 } 
