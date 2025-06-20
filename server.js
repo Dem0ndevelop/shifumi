@@ -1,11 +1,15 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const path = require('path');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
 const PORT = process.env.PORT || 3000;
+
+// Sert les fichiers statiques (HTML/CSS/JS)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Structure : { roomCode: { players: [socketId, ...], scores: {p1, p2, egalite}, coups: {p1, p2}, ready: 0/1/2 } }
 const rooms = {};
