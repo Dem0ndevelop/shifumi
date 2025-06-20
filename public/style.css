@@ -17,7 +17,7 @@ h1 {
     margin-bottom: 16px;
     color: #273c75;
 }
-#new-game {
+#new-game, #online-create {
     background: #44bd32;
     color: #fff;
     border: none;
@@ -25,10 +25,11 @@ h1 {
     padding: 12px 24px;
     font-size: 1.1em;
     cursor: pointer;
+    margin-left: 10px;
     margin-bottom: 24px;
     transition: background 0.2s, transform 0.2s;
 }
-#new-game:hover {
+#new-game:hover, #online-create:hover {
     background: #4cd137;
     transform: scale(1.05);
 }
