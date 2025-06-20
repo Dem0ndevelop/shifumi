@@ -190,25 +190,32 @@ if (document.getElementById('room-list')) {
     const onlineChoices = document.getElementById('online-choices');
     const onlineJ1 = document.getElementById('online-j1');
     const onlineJ2 = document.getElementById('online-j2');
+    const pseudoInput = document.getElementById('pseudo-input');
+    const leaderboardDiv = document.getElementById('leaderboard');
+    const playerLabel = document.getElementById('player-label');
+    const adversaireLabel = document.getElementById('adversaire-label');
     let currentRoom = null;
     let inGame = false;
     let myPlayerIndex = null;
     let hasPlayed = false;
     let waitingCoup = null;
+    let myPseudo = '';
+    let adversairePseudo = '';
 
     function renderRoomList(rooms) {
         roomList.innerHTML = '';
         if (rooms.length === 0) {
             roomList.innerHTML = '<li>Aucune partie en attente</li>';
         } else {
-            rooms.forEach(code => {
+            rooms.forEach(({ code, pseudo }) => {
                 const li = document.createElement('li');
-                li.textContent = `Partie ${code}`;
+                li.textContent = `Partie ${code} (${pseudo})`;
                 const btn = document.createElement('button');
                 btn.textContent = 'Rejoindre';
                 btn.className = 'room-join-btn';
                 btn.onclick = () => {
-                    socket.emit('joinRoom', code, (res) => {
+                    myPseudo = pseudoInput.value.trim() || 'Invité';
+                    socket.emit('joinRoom', { code, pseudo: myPseudo }, (res) => {
                         if (res.error) {
                             onlineStatus.textContent = res.error;
                         } else {
@@ -227,10 +234,25 @@ if (document.getElementById('room-list')) {
         }
     }
 
+    function renderLeaderboard(leaderboard) {
+        leaderboardDiv.innerHTML = '';
+        if (!leaderboard || leaderboard.length === 0) {
+            leaderboardDiv.textContent = 'Aucun score pour le moment.';
+            return;
+        }
+        leaderboard.forEach(({ pseudo, wins, losses }) => {
+            const div = document.createElement('div');
+            div.textContent = `${pseudo} : ${wins} victoires, ${losses} défaites`;
+            leaderboardDiv.appendChild(div);
+        });
+    }
+
     socket.on('roomList', renderRoomList);
+    socket.on('leaderboard', renderLeaderboard);
 
     onlineCreate.onclick = () => {
-        socket.emit('createRoom', ({ code, player }) => {
+        myPseudo = pseudoInput.value.trim() || 'Invité';
+        socket.emit('createRoom', { pseudo: myPseudo }, ({ code, player }) => {
             currentRoom = code;
             myPlayerIndex = player;
             inGame = true;
@@ -240,7 +262,7 @@ if (document.getElementById('room-list')) {
         });
     };
 
-    socket.on('startGame', () => {
+    socket.on('startGame', ({ pseudos }) => {
         onlineStatus.textContent = 'Adversaire connecté !';
         document.getElementById('game-area').classList.remove('hidden');
         hasPlayed = false;
@@ -248,6 +270,11 @@ if (document.getElementById('room-list')) {
         onlineChoices.style.display = 'none';
         resultDiv.textContent = '';
         choicesBtns.forEach(b => b.classList.remove('selected', 'gagnant', 'perdant', 'gris'));
+        if (pseudos) {
+            playerLabel.textContent = pseudos[myPlayerIndex - 1] || 'Vous';
+            adversaireLabel.textContent = pseudos[myPlayerIndex === 1 ? 1 : 0] || 'Adversaire';
+            adversairePseudo = pseudos[myPlayerIndex === 1 ? 1 : 0] || '';
+        }
     });
 
     socket.on('opponentLeft', () => {
@@ -282,7 +309,7 @@ if (document.getElementById('room-list')) {
         let isMeWinner = (gagnant === 'p1' && myPlayerIndex === 1) || (gagnant === 'p2' && myPlayerIndex === 2);
         let isMeLoser = (gagnant === 'p1' && myPlayerIndex === 2) || (gagnant === 'p2' && myPlayerIndex === 1);
         if (gagnant === 'p1' || gagnant === 'p2') {
-            resultDiv.textContent = isMeWinner ? 'Vous remportez la manche !' : 'Adversaire remporte la manche !';
+            resultDiv.textContent = isMeWinner ? 'Vous remportez la manche !' : (adversairePseudo ? adversairePseudo + ' remporte la manche !' : 'Adversaire remporte la manche !');
             resultDiv.classList.add(isMeWinner ? 'gagne' : 'perdu');
             if (isMeWinner) launchConfetti();
         } else {

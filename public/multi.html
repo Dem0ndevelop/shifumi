@@ -12,11 +12,14 @@
         <h1>Shifumi</h1>
         <a href="index.html" class="accueil-btn" style="position:absolute;left:18px;top:18px;font-size:1.2em;">← Accueil</a>
         <div id="online-area" style="margin-bottom:18px;">
+            <input id="pseudo-input" type="text" maxlength="16" placeholder="Votre pseudo" style="width:140px; margin-bottom:8px;">
             <button id="online-create">Créer une partie</button>
             <div id="online-status" style="margin-top:10px; color:#0097e6; font-size:1em;"></div>
             <div id="online-room" style="margin-top:8px; font-size:1.1em; color:#273c75;"></div>
             <h3 style="margin-top:24px;">Parties en attente :</h3>
             <ul id="room-list" style="list-style:none; padding:0; margin:0 0 18px 0;"></ul>
+            <h3 style="margin-top:32px;">Classement :</h3>
+            <div id="leaderboard" style="background:#f5f6fa; border-radius:8px; padding:10px 16px; min-height:40px;"></div>
         </div>
         <button id="new-game">Nouvelle partie</button>
         <div id="game-area" class="hidden">
