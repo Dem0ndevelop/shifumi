@@ -198,30 +198,38 @@ if (document.getElementById('room-list')) {
 
     function renderRoomList(rooms) {
         roomList.innerHTML = '';
-        if (rooms.length === 0) {
+        if (rooms.length === 0 && !currentRoom) {
             roomList.innerHTML = '<li>Aucune partie en attente</li>';
         } else {
+            if (currentRoom && !rooms.includes(currentRoom)) {
+                rooms = [currentRoom, ...rooms];
+            }
             rooms.forEach(code => {
                 const li = document.createElement('li');
                 li.textContent = `Partie ${code}`;
-                const btn = document.createElement('button');
-                btn.textContent = 'Rejoindre';
-                btn.className = 'room-join-btn';
-                btn.onclick = () => {
-                    socket.emit('joinRoom', code, (res) => {
-                        if (res.error) {
-                            onlineStatus.textContent = res.error;
-                        } else {
-                            currentRoom = res.code;
-                            myPlayerIndex = res.player;
-                            inGame = true;
-                            onlineRoomDiv.textContent = 'En jeu dans la partie : ' + currentRoom;
-                            onlineStatus.textContent = '';
-                            document.getElementById('game-area').classList.remove('hidden');
-                        }
-                    });
-                };
-                li.appendChild(btn);
+                if (currentRoom === code) {
+                    li.style.fontWeight = 'bold';
+                    li.style.background = '#dff9fb';
+                    li.appendChild(document.createTextNode(' (vous)'));
+                } else {
+                    const btn = document.createElement('button');
+                    btn.textContent = 'Rejoindre';
+                    btn.className = 'room-join-btn';
+                    btn.onclick = () => {
+                        socket.emit('joinRoom', code, (res) => {
+                            if (res.error) {
+                                onlineStatus.textContent = res.error;
+                            } else {
+                                currentRoom = res.code;
+                                myPlayerIndex = res.player;
+                                inGame = true;
+                                onlineRoomDiv.textContent = 'En jeu dans la partie : ' + currentRoom;
+                                onlineStatus.textContent = '';
+                            }
+                        });
+                    };
+                    li.appendChild(btn);
+                }
                 roomList.appendChild(li);
             });
         }
